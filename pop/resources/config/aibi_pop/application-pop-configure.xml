@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context" 
+    xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xsi:schemaLocation="
+	    http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+	    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+		http://cxf.apache.org/jaxws  http://cxf.apache.org/schemas/jaxws.xsd
+		http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+	<import resource="pop-job-configure.xml" />
+    	<!-- web serivce 定义支持-->	
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-extension-soap.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+	
+	<bean id="popPropertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="location">
+			<value>classpath:config/aibi_pop/pop.properties</value>
+		</property>
+	</bean>
+	    <!-- 国际化信息支持  -->
+    <bean id="popMessageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+        	<list>
+        		<value>config.aibi_pop.province.${PROVINCE}.${RUN_MODE}.pop-appresources</value>
+        		<value>config.aibi_pop.pop-appresources</value>
+        	</list>
+        </property>	
+    </bean>  
+<!-- POP dataSource -->
+	<bean id="dataSourcePop" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>${JNDI_PREFIX}${JNDI_POP}</value>
+		</property>
+	</bean>
+	<bean id="simpleJdbcTemplate"
+		class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
+		<constructor-arg>
+			<ref bean="dataSourcePop" />
+		</constructor-arg>
+	</bean>
+	<!-- POP sessionFactory -->
+	<bean id="sessionFactoryPop"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSourcePop" />
+		</property>
+		<property name="mappingLocations">
+			<list>
+				<value>classpath*:/com/ai/bdx/pop/model/privilege/*.hbm.xml</value>
+				<value>classpath*:/com/ai/bdx/pop/model/privilege/${PROVINCE}/*.hbm.xml</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<!-- JDBC -->
+				<!--prop key="hibernate.connection.isolation">8</prop -->
+				<prop key="hibernate.dialect">${POP_HIBERNATE_DIALECT}</prop>
+				<prop key="hibernate.show_sql">${HIBERNATE_DIALECT.SHOW_SQL}</prop>
+				<prop key="hibernate.format_sql">no</prop>
+				<prop key="hibernate.max_fetch_depth">3</prop>
+				<prop key="hibernate.default_batch_fetch_size">25</prop>
+				<prop key="hibernate.cglib.use_reflection_optimizer">true</prop>
+				<prop key="hibernate.connection.SetBigStringTryClob">true</prop>
+				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+				<prop key="hibernate.cache.use_query_cache">true</prop>		
+			</props>
+		</property>
+	</bean>
+		<!-- transactionManager -->
+	<bean id="transactionManagerPop"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryPop" />
+		</property>
+	</bean>
+	<!-- 配置事务特性，配置add，delete，update开始的方法，事务传播特性为required -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManagerPop">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="send*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="dispatch*" propagation="REQUIRED" />
+			<tx:method name="do*" propagation="REQUIRED" />
+			<tx:method name="export*" propagation="REQUIRED" />
+			<tx:method name="deal*" propagation="REQUIRED" />
+			<tx:method name="gen*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="upload*" propagation="REQUIRED" />
+			<tx:method name="move*" propagation="REQUIRED" />
+			<tx:method name="execute*" propagation="REQUIRED" />
+			<tx:method name="execTask*" propagation="REQUIRED" />
+			<tx:method name="create*" propagation="REQUIRED" />
+			<tx:method name="recreate*" propagation="REQUIRED" />
+			<tx:method name="control*" propagation="REQUIRED" />
+			<tx:method name="batchUpdate*" propagation="REQUIRED" />
+			<!--  <tx:method name="*" propagation="REQUIRED" read-only="true" /> -->
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置那些类的方法进行事务管理，当前com.ai.bdx.pop.service包中的子包，类中所有方法需要，还需要参考tx:advice的设置 -->
+	<aop:config>
+		<aop:pointcut id="allManagerMethod"
+			expression="execution(* com.ai.bdx.pop.service.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="allManagerMethod" />
+	</aop:config>
+	
+	<bean id="jdbcTemplate"
+		class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource">
+			<ref bean="dataSourcePop" />
+		</property>
+	</bean>
+ 
+	<bean id="popAvoidBotherFilterImpl"
+		class="com.ai.bdx.pop.phonefilter.impl.local.PopAvoidBotherFilterImpl">
+	</bean>
+	
+	<bean id="checkPhoneExistFilterImpl"
+		class="com.ai.bdx.pop.phonefilter.impl.local.CheckPhoneExistFilterImpl">
+	</bean>
+	
+	<bean id="dynamicStaticUserMatchFilter"
+		class="com.ai.bdx.pop.phonefilter.impl.local.DynamicStaticUserMatchFilterImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	
+	<bean id="dataHandle" class="com.ai.bdx.pop.service.impl.PopReceiveCepDataHandlerImpl">
+		<property name="popSendOddService">
+			<ref bean="IPopSendOddService"/>
+		</property>
+	</bean>
+	
+	<bean id="eventHandler" class="com.ai.bdx.pop.handler.ValueEventHandler">
+		<property name="dataHandle" ref="dataHandle" />
+	</bean>
+	
+	<bean id="unifiedContactControlFilter" class="com.ai.bdx.pop.phonefilter.impl.local.UnifiedContactControlFilterImpl">
+		<property name="dynamicStaticUserMatchFilter">
+			<ref bean="dynamicStaticUserMatchFilter"/>
+		</property>
+		<property name="popAvoidBotherFilter">
+			<ref bean="popAvoidBotherFilterImpl"/>
+		</property>
+	</bean>
+	
+	<bean id="IPopSendOddService" class="com.ai.bdx.pop.service.impl.PopSendOddServiceImpl">
+		<property name="popAvoidBotherFilterImpl">
+			<ref bean="popAvoidBotherFilterImpl"/>
+		</property>
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+		<property name="checkPhoneExistFilter">
+			<ref bean="checkPhoneExistFilterImpl"/>
+		</property>
+	</bean>
+	
+	<bean id="IPopStatusService" class="com.ai.bdx.pop.service.impl.IPopStatusServiceImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	<bean id="IPopSmsService" class="com.ai.bdx.pop.service.impl.province.${PROVINCE}.SmsServcieImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+		<property name="userPrivilegeService">
+			<ref bean="userPrivilegeCommonService"/>
+		</property>
+	</bean>
+	<!--  邮件发送程序
+	<jaxws:client id="mailSendClient" address="http://127.0.0.1:8088/cxf/service/mailSendServer" serviceClass="com.ai.bdx.pop.wsclient.IPopSendMailClient" />
+	-->
+	
+	<!--  pop调用CEP查询基站接口 add by jinlong 20150907-->
+	<jaxws:client id="iCepWsService" address="http://10.1.235.49:9001/cep/services/cepWsService" serviceClass="com.ailk.bdx.cep.wservice.ICepWsService" />
+	
+	<!-- POP对PCC接口 -->
+	<bean id="sendPccInfoService" class="com.ai.bdx.pop.wsclient.impl.SendPccInfoServiceImpl">
+		
+	</bean>
+	<!-- add by jinlong 20151019 读取PCC反馈EDR日志接口实现类-->
+	<bean id="IPccFeedbackEDRLogService" class="com.ai.bdx.pop.service.impl.PccFeedbackEDRLogServiceImpl">
+	</bean>
+	<!-- 宽带变更 -->
+	<bean id="cpeBroadbandService" class="com.ai.bdx.pop.service.impl.CpeBroadbandServiceImpl">
+		<property name="cpeBroadbandDao">
+			<ref bean="cpeBroadbandDao"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeBroadbandDao" class="com.ai.bdx.pop.dao.impl.CpeBroadbandDaoImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	<!-- 单号码查询 -->
+	<bean id="cpeSelectSubsidService" class="com.ai.bdx.pop.service.impl.CpeSelectSubsidServiceImpl">
+		<property name="cpeSelectSubsidDao">
+			<ref bean="cpeSelectSubsidDao"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeSelectSubsidDao" class="com.ai.bdx.pop.dao.impl.CpeSelectSubsidDaoImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	<!-- 基站查询 -->
+	<bean id="cpeSelectStationService" class="com.ai.bdx.pop.service.impl.CpeSelectStationServiceImpl">
+		<property name="cpeSelectStationDao">
+			<ref bean="cpeSelectStationDao"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeSelectStationDao" class="com.ai.bdx.pop.dao.impl.CpeSelectStationDaoImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	<!-- 村庄查询 -->
+	<bean id="cpeSelectCountryService" class="com.ai.bdx.pop.service.impl.CpeSelectCountryServiceImpl">
+		<property name="cpeSelectCountryDao">
+			<ref bean="cpeSelectCountryDao"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeSelectCountryDao" class="com.ai.bdx.pop.dao.impl.CpeSelectCountryDaoImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeManagerService" class="com.ai.bdx.pop.service.impl.CpeManagerServiceImpl">
+		<property name="cpeUserLockRelDao">
+			<ref bean="cpeUserLockRelDao"/>
+		</property>
+		<property name="dimCpeLacCiDao">
+			<ref bean="dimCpeLacCiDao"/>
+		</property>
+		<property name="cpeUserInfoDao">
+			<ref bean="cpeUserInfoDao"/>
+		</property>
+	</bean>
+	
+	<bean id="lineFileReader" class="com.ai.bdx.pop.adapter.schedule.LineFileReader">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeStatusChangeFileReader" class="com.ai.bdx.pop.adapter.schedule.CpeStatusChangeFileReader">
+		<property name="cpeStatusChangeHandler">
+			<ref bean="cpeStatusChangeHandler"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeInstallLineFileReader" class="com.ai.bdx.pop.adapter.schedule.CpeInstallLineFileReader">
+		<property name="cpeInstallDataHandler">
+			<ref bean="cpeInstallDataHandler"/>
+		</property>
+		<property name="cpeManagerService">
+			<ref bean="cpeManagerService"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeUserLockRelDao" class="com.ai.bdx.pop.adapter.dao.impl.CpeUserLockRelDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
+	
+	<bean id="cpeUserInfoDao" class="com.ai.bdx.pop.adapter.dao.impl.CpeUserInfoDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
+	
+	<bean id="dimCpeLacCiDao" class="com.ai.bdx.pop.adapter.dao.impl.DimCpeLacCiDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
+	
+	<bean id="dimCpeStationDao" class="com.ai.bdx.pop.adapter.dao.impl.DimCpeStationDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
+	
+	<!-- CPE用户状态变更  农村和城市位置变更-->
+	<bean id="cpeStatusChangeHandler" class="com.ai.bdx.pop.service.impl.CpeStatusChangeHandlerImpl">
+		<property name="cpeUserInfoDao" ref="cpeUserInfoDao" />
+	</bean>
+	
+	<bean id="cpeInstallDataHandler" class="com.ai.bdx.pop.adapter.handle.impl.CpeInstallDataHandlerImpl">
+	</bean>
+<!-- pop2销户流程 -->
+	<bean id="cpeDeleteService"
+		class="com.ai.bdx.pop.service.impl.CpeDeleteServiceImpl">
+		<property name="cpeDeleteDao">
+			<ref bean="cpeDeleteDaoImpl"/>
+		</property>
+	</bean>
+	<bean id="cpeDeleteDaoImpl"
+		class="com.ai.bdx.pop.dao.impl.CpeDeleteDaoImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	<!-- pop 更改IMSI -->
+	<bean id="webServiceChangeImsi" class="com.ai.bdx.pop.service.impl.WebServiceChangeImsiService">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	<!-- boss->pop 工单 -->
+	<bean id="boss2popWebServiceDao" class="com.ai.bdx.pop.dao.impl.BOSS2POPWebServiceDaoImpl">
+		<property name="jdbcTemplate">
+			<ref bean="jdbcTemplate"/>
+		</property>
+		<property name="sendPccInfoService">
+			<ref bean="sendPccInfoService"/>
+		</property>
+	</bean>
+	<!-- 基站批量割接 -->
+	<bean id="batchStationService" class="com.ai.bdx.pop.service.impl.BatchStationServiceImpl">
+		<property name="batchStationDao" >
+			<ref bean="batchStationDao"/>
+		</property>
+	</bean>
+	<bean id="batchStationDao" class="com.ai.bdx.pop.dao.impl.BatchStationDaoImpl">
+		<property name="jdbcTemplate" >
+			<ref bean="jdbcTemplate"/>
+		</property>
+	</bean>
+	 <!-- 事务控制 -->
+	
+	<bean id="TransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSourcePop"></property>
+	</bean>
+	<tx:advice id="TransactionAdvice"  transaction-manager="TransactionManager">
+		<tx:attributes>
+			<tx:method name="update*" propagation="REQUIRED"  rollback-for="java.lang.Exception"/>
+			<tx:method name="delete*" propagation="REQUIRED"  rollback-for="java.lang.Exception"/>
+			<tx:method name="insert*" propagation="REQUIRED"  rollback-for="java.lang.Exception"/>
+			<tx:method name="cpe*" propagation="REQUIRED"  rollback-for="java.lang.Exception"/>
+			<tx:method name="query*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+ 	<aop:config>
+		<aop:pointcut expression="execution(* com.ai.bdx.pop.service.impl.CpeDeleteServiceImpl.*(..))" id="serviceMethods"/>
+		<aop:advisor advice-ref="TransactionAdvice" pointcut-ref="serviceMethods"/>
+	</aop:config>  
+	<aop:config>
+		<aop:pointcut expression="execution(* com.ai.bdx.pop.service.impl.BatchStationServiceImpl.*(..))" id="serviceMethods2"/>
+		<aop:advisor advice-ref="TransactionAdvice" pointcut-ref="serviceMethods2"/>
+	</aop:config>
+</beans>

@@ -1,0 +1,164 @@
+package com.ai.bdx.pop.bean;
+
+/**
+ * 策略配置业务bean
+ * @author lixq8
+ *
+ */
+public class PopPolicyBaseinfoBean {
+
+	private String id;
+	private String policyName;
+	private String policyTypeId;
+	private String policyTypeName;
+	private String policyLevelId;
+	private String policyLevelName;
+	private String policyStatusId;
+	private String policyStatusName;
+	private String policyTemplateFlag;
+
+	private String createStartDate;
+	private String createEndDate;
+
+	private String validStartDate;
+	private String validEndDate;
+
+	private String policyRuleName;
+	private int custGroupNumber;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getPolicyName() {
+		return policyName;
+	}
+
+	public void setPolicyName(String policyName) {
+		this.policyName = policyName;
+	}
+
+	public String getPolicyTypeId() {
+		return policyTypeId;
+	}
+
+	public void setPolicyTypeId(String policyTypeId) {
+		this.policyTypeId = policyTypeId;
+	}
+
+	public String getPolicyTypeName() {
+		return policyTypeName;
+	}
+
+	public void setPolicyTypeName(String policyTypeName) {
+		this.policyTypeName = policyTypeName;
+	}
+
+	public String getPolicyLevelId() {
+		return policyLevelId;
+	}
+
+	public void setPolicyLevelId(String policyLevelId) {
+		this.policyLevelId = policyLevelId;
+	}
+
+	public String getPolicyLevelName() {
+		return policyLevelName;
+	}
+
+	public void setPolicyLevelName(String policyLevelName) {
+		this.policyLevelName = policyLevelName;
+	}
+
+	public String getPolicyStatusId() {
+		return policyStatusId;
+	}
+
+	public void setPolicyStatusId(String policyStatusId) {
+		this.policyStatusId = policyStatusId;
+	}
+
+	public String getPolicyStatusName() {
+		return policyStatusName;
+	}
+
+	public void setPolicyStatusName(String policyStatusName) {
+		this.policyStatusName = policyStatusName;
+	}
+
+	public String getCreateStartDate() {
+		return createStartDate;
+	}
+
+	public void setCreateStartDate(String createStartDate) {
+		this.createStartDate = createStartDate;
+	}
+
+	public String getCreateEndDate() {
+		return createEndDate;
+	}
+
+	public void setCreateEndDate(String createEndDate) {
+		this.createEndDate = createEndDate;
+	}
+
+	public String getValidStartDate() {
+		return validStartDate;
+	}
+
+	public void setValidStartDate(String validStartDate) {
+		this.validStartDate = validStartDate;
+	}
+
+	public String getValidEndDate() {
+		return validEndDate;
+	}
+
+	public void setValidEndDate(String validEndDate) {
+		this.validEndDate = validEndDate;
+	}
+
+	public String getPolicyRuleName() {
+		return policyRuleName;
+	}
+
+	public void setPolicyRuleName(String policyRuleName) {
+		this.policyRuleName = policyRuleName;
+	}
+
+	public int getCustGroupNumber() {
+		return custGroupNumber;
+	}
+
+	public void setCustGroupNumber(int custGroupNumber) {
+		this.custGroupNumber = custGroupNumber;
+	}
+
+	/**
+	 * @return the policyTemplateFlag
+	 */
+	public String getPolicyTemplateFlag() {
+		return policyTemplateFlag;
+	}
+
+	/**
+	 * @param policyTemplateFlag the policyTemplateFlag to set
+	 */
+	public void setPolicyTemplateFlag(String policyTemplateFlag) {
+		this.policyTemplateFlag = policyTemplateFlag;
+	}
+
+	@Override
+	public String toString() {
+		return "PopPolicyBaseinfoBean [id=" + id + ", policyName=" + policyName + ", policyTypeId=" + policyTypeId
+				+ ", policyTypeName=" + policyTypeName + ", policyLevelId=" + policyLevelId + ", policyLevelName="
+				+ policyLevelName + ", policyStatusId=" + policyStatusId + ", policyStatusName=" + policyStatusName
+				+ ", policyTemplateFlag=" + policyTemplateFlag + ", createStartDate=" + createStartDate
+				+ ", createEndDate=" + createEndDate + ", validStartDate=" + validStartDate + ", validEndDate="
+				+ validEndDate + ", policyRuleName=" + policyRuleName + ", custGroupNumber=" + custGroupNumber + "]";
+	}
+}

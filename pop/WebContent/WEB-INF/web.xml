@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+       http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:net/bull/javamelody/monitoring-spring-datasource.xml
+					classpath:config/aibi_pop/cxf-mpm-ws.xml
+		</param-value>
+	</context-param>
+	<filter>
+		<filter-name>autoLoginFilter</filter-name>
+		<filter-class>com.ai.bdx.pop.filter.AutoLoginFilter</filter-class>
+		<init-param>
+			<param-name>autoLogin</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>skip</param-name>
+			<param-value>/index.jsp;/aldServlet/;/login/;/jscript/;/toolbox/;/images/;/css/;/assets/;/services/;/ext/;/servicesCxf/;/services;/static;/cpeSelectSubsid/;/cpeSelectStation/;/cpeSelectCountry/;/cpeManager/;/batchStationCutover/;</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>monitoring</filter-name>
+		<filter-class>net.bull.javamelody.MonitoringFilter</filter-class>
+	</filter>
+	<filter>
+		<filter-name>jfinal</filter-name>
+		<filter-class>com.jfinal.core.JFinalFilter</filter-class>
+		<init-param>
+			<param-name>configClass</param-name>
+			<param-value>com.ai.bdx.pop.base.PopConfig</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>com.ai.bdx.pop.filter.SetCharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>ignore</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>autoLoginFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>monitoring</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>jfinal</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<listener>
+		<listener-class>net.bull.javamelody.SessionListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>com.ai.bdx.pop.listener.PopContextLoaderListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>com.ai.bdx.frame.approval.listener.ApCommonListener</listener-class>
+	</listener>
+
+	<servlet>
+		<servlet-name>CXFServlet</servlet-name>
+		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>CXFServlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
+	
+	<!-- 审批组件 spring mvc配置 -->
+	<servlet>
+		<servlet-name>springmvc-approval</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springmvc-approval</servlet-name>
+		<url-pattern>/aibi-approval/*</url-pattern>
+	</servlet-mapping>
+	
+	<session-config>
+		<session-timeout>5</session-timeout>
+	</session-config>
+<!-- 400错误 -->
+<error-page>
+<error-code>400</error-code>
+<location>/error.jsp</location>
+</error-page>
+<!-- 404 页面不存在错误 -->
+<error-page>
+<error-code>404</error-code>
+<location>/error.jsp</location>
+</error-page>
+<!-- 500 服务器内部错误 -->
+<error-page>
+<error-code>500</error-code>
+<location>/error.jsp</location>
+</error-page>
+<!-- java.lang.Exception异常错误,依据这个标记可定义多个类似错误提示 -->
+<error-page>
+<exception-type>java.lang.Exception</exception-type>
+<location>/error.jsp</location>
+</error-page>
+<!-- java.lang.NullPointerException异常错误,依据这个标记可定义多个类似错误提示 -->
+<error-page>
+<exception-type>java.lang.NullPointerException </exception-type>
+<location>/error.jsp</location>
+</error-page>
+ 
+<error-page>
+<exception-type>javax.servlet.ServletException</exception-type>
+<location>/error.jsp</location>
+</error-page>
+	<mime-mapping>
+		<extension>doc</extension>
+		<mime-type>application/msword</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>xls</extension>
+		<mime-type>application/msexcel</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>xlsx</extension>
+		<mime-type>application/msexcel</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>pdf</extension>
+		<mime-type>application/pdf</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>zip</extension>
+		<mime-type>application/zip</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>rar</extension>
+		<mime-type>application/rar</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>txt</extension>
+		<mime-type>application/txt</mime-type>
+	</mime-mapping>
+	<mime-mapping>
+		<extension>chm</extension>
+		<mime-type>application/mshelp</mime-type>
+	</mime-mapping>
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+	<login-config>
+		<auth-method>BASIC</auth-method>
+	</login-config>
+</web-app>

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	<!-- 营销任务执行调度引擎-任务调度服务 -->
+	<bean id="popTaskScheduleService" class="com.ai.bdx.pop.task.PopTaskServiceJob">
+	</bean>
+	<bean id="popTaskScheduleJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popTaskScheduleService" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="popTaskScheduleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="popTaskScheduleJob" />
+		<property name="startDelay" value="40000" /> <!--设置延迟40秒后运行 -->
+		<property name="repeatInterval" value="60000" /> <!--设置每60秒触发一次 -->
+	</bean>
+	<!-- 加载每天需要执行的任务 -->
+	<bean id="popLoadTodayTaskService" class="com.ai.bdx.pop.task.PopLoadTodayTaskServiceJob">
+	</bean>
+	<bean id="popLoadTodayTaskServiceJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popLoadTodayTaskService" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="popLoadTodayTaskServiceTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="popLoadTodayTaskServiceJob" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0 7 * * ?</value>
+		</property>
+	</bean>
+
+	<!-- 完成已经过期的任务 -->
+	<bean id="popStatusMonitorTask" class="com.ai.bdx.pop.task.PopStatusMonitorServiceJob">
+		<property name="popSendOddService">
+			<ref bean="IPopSendOddService" />
+		</property>
+	</bean>
+	<bean id="popStatusMonitorJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popStatusMonitorTask" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="popStatusMonitorTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="popStatusMonitorJob" />
+		<property name="cronExpression">
+			<!-- 每天1点0分0秒执行 -->
+			<value>0 0 1 * * ?</value>
+		</property>
+	</bean>
+
+	<!-- 用户策略规则汇总数据表（每日汇总） -->
+	<bean id="popUserPolicyRule" class="com.ai.bdx.pop.task.PopUserPolicyRuleServiceJob">
+	</bean>
+	<bean id="popUserPolicyRuleJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popUserPolicyRule" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+	<bean id="popUserPolicyRuleTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="popUserPolicyRuleJob" />
+		<property name="cronExpression" value="0 0 8 * * ?" />
+	</bean>
+	
+	<!-- add by jinl 20150610 POP和DACP同步数据接口， 同步dim_logic_area（每日汇总）start -->
+	<bean id="popGetDimLogicArea" class="com.ai.bdx.pop.task.PopGetDimLogicAreaServiceJob">
+	</bean>
+	<bean id="popGetDimLogicAreaJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popGetDimLogicArea" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+	<bean id="popGetDimLogicAreaTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="popGetDimLogicAreaJob" />
+		<property name="cronExpression" value="0 0 1 * * ?" />	<!-- 每天1点同步-->
+	</bean>
+	<!-- add by jinl 20150610 POP和DACP同步数据接口， 同步dim_logic_area（每日汇总）end -->
+	<!-- add by jinl 20150610 POP和DACP同步数据接口dim_prod_product_dm， 同步dim_prod_product_dm_yyyymmdd（每日汇总） start-->
+	<bean id="popGetDimProdProductDm" class="com.ai.bdx.pop.task.PopGetDimProdProductDmServiceJob">
+	</bean>
+	<bean id="popGetDimProdProductDmJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popGetDimProdProductDm" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+	<bean id="popGetDimProdProductDmTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="popGetDimProdProductDmJob" />
+		<property name="cronExpression" value="0 0 1 * * ?" />	<!-- 每天1点同步-->
+	</bean>
+	<!-- add by jinl 20150610 POP和DACP同步数据接口dim_prod_product_dm， 同步dim_prod_product_dm_yyyymmdd（每日汇总） end-->
+	<!-- add by jinl 20150610 POP和DACP同步数据接口dim_term_info_tac_dm， 同步dim_term_info_tac_dm_yyyymmdd（每日汇总） start-->
+	<bean id="popGetDimTermInfoTacDm" class="com.ai.bdx.pop.task.PopGetDimTermInfoTacDmServiceJob">
+	</bean>
+	<bean id="popGetDimTermInfoTacDmJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popGetDimTermInfoTacDm" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+	<bean id="popGetDimTermInfoTacDmTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="popGetDimTermInfoTacDmJob" />
+		<property name="cronExpression" value="0 0 1 * * ?" />	<!-- 每天1点同步-->
+	</bean>
+	<!-- add by jinl 20150610 POP和DACP同步数据接口dim_term_info_tac_dm， 同步dim_term_info_tac_dm_yyyymmdd（每日汇总） end-->
+
+		<!-- add by jinl 20150820 派单查询状态job start-->
+	<bean id="popPccCheckSign" class="com.ai.bdx.pop.task.PopPccCheckSignServiceJob">
+	</bean>
+	<bean id="popPccCheckSignJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="popPccCheckSign" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+	<bean id="popPccCheckSignTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="popPccCheckSignJob" />
+		<property name="cronExpression" value="0/10 * * * * ?" />	<!-- 每10秒执行一次-->
+	</bean>
+	<!-- add by jinl 20150820 end-->
+	
+	<!-- add by jinl 20151015 POP获取PCC反馈日志job start-->
+	<bean id="getPccFeedbackEDRLog" class="com.ai.bdx.pop.task.GetPccFeedbackEDRLogServiceJob">
+	</bean>
+	<bean id="getPccFeedbackEDRLogJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="getPccFeedbackEDRLog" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+	<bean id="getPccFeedbackEDRLogTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="getPccFeedbackEDRLogJob" />
+		<property name="cronExpression" value="0/10 * * * * ?" />	<!-- 每10秒执行一次 计划每天执行一次-->
+	</bean>
+	<!-- add by jinl 20151015 POP同步PCC反馈日志job end-->
+	<!-- CPE开户测试定时任务-->
+    <bean id="scanFtpSchedule" class="com.asiainfo.biapp.pop.task.CpeInstallJob" /> 
+   <bean id="scanFtp"   class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	<property name="targetObject">
+			<ref bean="scanFtpSchedule" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>  
+       
+    </bean>
+    <bean id="scanFtpTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="scanFtp" />
+		<property name="startDelay" value="60000" /> <!--设置延迟60秒后运行 -->
+		<property name="repeatInterval" value="60000" /> <!--设置每30秒触发一次 -->
+	</bean>
+	<!-- 每分钟扫描定本地主机上的销户上传txt文件定时任务-->
+    <bean id="scanFtpScheduleForDelete" class="com.ai.bdx.pop.task.ftp.ScanFtpScheduleForDeleteCpeUser" /> 
+    
+    <bean id="scanFtpDelete"  
+         class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+         
+	<property name="targetObject">
+			<ref bean="scanFtpScheduleForDelete" />
+		</property>
+		<property name="targetMethod">
+			<value>scanFtpTask</value>
+		</property>  
+       
+    </bean>
+ <bean id="scanFtpForDeleteTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="scanFtpDelete" />
+		<property name="startDelay" value="30000" /> <!--设置延迟30秒后运行 -->
+		<property name="repeatInterval" value="15000" /> <!--设置每10秒触发一次 -->
+	</bean>
+		<!-- 销户远程下载定时任务 -->
+	    <bean id="scanFtpScheduleForDeleteDownload" class="com.ai.bdx.pop.task.ftp.ScanFtpScheduleForDeleteDownload" /> 
+    
+    <bean id="scanFtpDeleteDownload"  
+         class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+         
+	<property name="targetObject">
+			<ref bean="scanFtpScheduleForDeleteDownload" />
+		</property>
+		<property name="targetMethod">
+			<value>scanFtpTask</value>
+		</property>  
+       
+    </bean>
+	 <bean id="scanFtpForDeleteDownloadTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="scanFtpDeleteDownload" />
+		<property name="startDelay" value="60000" /> <!--设置延迟30秒后运行 -->
+		<property name="repeatInterval" value="60000" /> <!--设置每10秒触发一次 -->
+	</bean>
+		<!-- 销户异常文件定时读取任务 -->
+	 <bean id="scanFtpScheduleForErrorDelete" class="com.ai.bdx.pop.task.ftp.CpeErrorDeleteFileJob" /> 
+	   	 <bean id="cpeErrorDeleteFileJob"  
+	         class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	<property name="targetObject">
+			<ref bean="scanFtpScheduleForErrorDelete" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>  
+    </bean>
+ 	<bean id="scanFtpForErrorDeleteTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="cpeErrorDeleteFileJob" />
+		<property name="cronExpression" value="0 0/10 * * * ?" />	<!-- 每10分钟执行一次-->
+	</bean>
+	<!-- add by hpa 20160519 POP定时从存放BOSS上CPE用户开户入网文件的FTP上获取CPE开户信息并上传反馈文件 start-->
+	<!-- <bean id="cpeInstallService" class="com.ai.bdx.pop.task.CpeInstallServiceJob">
+	</bean>
+	<bean id="cpeInstallJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="cpeInstallService" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="cpeInstallTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="cpeInstallJob" />
+		<property name="startDelay" value="40000" /> 设置延迟40秒后运行
+		<property name="repeatInterval" value="60000" /> 设置每60秒触发一次
+	</bean> -->
+	
+	
+	<bean id="cpeInstallAdapterService" class="com.ai.bdx.pop.task.CpeInstallAdapterServiceJob">
+		<property name="cpeInstallLineFileReader">
+			<ref bean="cpeInstallLineFileReader"/>
+		</property>
+	</bean>
+	
+	<bean id="cpeInstallAdapterJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="cpeInstallAdapterService" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="cpeInstallAdapterTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="cpeInstallAdapterJob" />
+		<property name="startDelay" value="40000" /> <!--设置延迟40秒后运行 -->
+		<property name="repeatInterval" value="60000" /> <!--设置每60秒触发一次 -->
+	</bean>
+	<!-- add by hpa 20160519 POP定时从存放BOSS上CPE用户开户入网文件的FTP上获取CPE开户信息并上传反馈文件 end-->
+	
+	
+	<bean id="cpeUserStatusChangeServiceJob" class="com.ai.bdx.pop.task.CpeUserStatusChangeServiceJob">
+	</bean>
+	<bean id="cpeUserStatusChangeJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="cpeUserStatusChangeServiceJob" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="cpeUserStatusChangeTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="cpeUserStatusChangeJob" />
+		<property name="startDelay" value="40000" /> <!--设置延迟40秒后运行 -->
+		<property name="repeatInterval" value="60000" /> <!--设置每60秒触发一次 -->
+	</bean>
+	
+		 <!-- 每分钟扫描定本地主机上的宽带上传txt文件定时任务-->
+	 	
+	    <bean id="scanFtpBroadbandCpeUser" class="com.ai.bdx.pop.task.ftp.ScanFtpBroadbandCpeUser" >
+	    	<property name="cpeBroadbandService" ref="cpeBroadbandService"></property>
+	    </bean> 
+ 	    <bean id="cpeBroadbandServiceImpl" class="com.ai.bdx.pop.service.impl.CpeBroadbandServiceImpl" >
+	    	<property name="cpeBroadbandDao" ref="cpeBroadbandDao"></property>
+	    </bean>
+
+    	<bean id="scanFtpBroadband"  
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"> 
+
+         <property name="targetObject">
+            <ref bean="scanFtpBroadbandCpeUser"/>
+         </property> 
+         <property name="targetMethod"> 
+            <value>scanFtpTask</value>
+         </property>
+   </bean>
+    
+    <!-- <bean id="scanFtpForBroadbandTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> -->
+    <bean id="scanFtpForBroadbandTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="scanFtpBroadband" />
+		<!-- <property name="cronExpression">
+			每分钟执行任务调度 0 0 /1 * * ?
+			<value>${SCAN_FTP_DELETE_FILES}</value>
+		</property> -->
+		<property name="startDelay" value="40000" /> <!--设置延迟40秒后运行 -->
+		<property name="repeatInterval" value="60000" /> <!--设置每60秒触发一次 -->
+	</bean>
+	
+	
+	<!-- 扫描基站变更切割 -->
+    <bean id="scanBatchStationChange" class="com.ai.bdx.pop.task.ScanBatchStationChange" /> 
+	<bean id="scanBatchStationChangeJob"  
+         class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+         
+	<property name="targetObject">
+		<ref bean="scanBatchStationChange" />
+		</property>
+		<property name="targetMethod">
+			<value>scanStation</value>
+		</property>  
+       
+    </bean>
+	<bean id="scanBatchStationChangeTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="scanBatchStationChangeJob" />
+		<property name="cronExpression" value="0 0/10 * * * ?" />	<!-- 每10分钟执行一次-->
+	</bean> 
+	<!-- 扫描基站变更切割 -->
+	<!-- 扫描用户imsi变更 -->
+	<bean id="cpeChangeService" class="com.ai.bdx.pop.task.CpeChangeService">
+	   <property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
+	
+	<bean id="cpeChangeServiceJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="cpeChangeService" />
+		</property>
+		<property name="targetMethod">
+			<value>runTask</value>
+		</property>
+	</bean>
+	<bean id="cpeImsiChangeTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="cpeChangeServiceJob" />
+		<property name="startDelay" value="3600000" /> <!--设置延迟1小时后运行 -->
+		<property name="repeatInterval" value="3600000" /> <!--设置每1小时触发一次 -->
+	</bean>
+	
+	<!-- 总管理类 如果将lazy-init='false'那么容器启动就会执行调度程序 -->
+	<bean id="jobTriggerFactory"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+ 				<!-- <ref bean="popTaskScheduleTrigger" />
+				<ref bean="popLoadTodayTaskServiceTrigger" />
+				<ref bean="popStatusMonitorTrigger" />
+				<ref bean="popUserPolicyRuleTrigger" />
+				add by jinl 20150610
+				<ref bean="popGetDimLogicAreaTrigger" />
+				<ref bean="popGetDimProdProductDmTrigger" />
+				<ref bean="popGetDimTermInfoTacDmTrigger" />
+
+				<ref bean="synchrnizeFromPocTrigger" />
+
+				add by jinl 20150820 派单查询状态job start
+				<ref bean="popPccCheckSignTrigger" />
+				add by jinl 20150820 end
+				
+				add by jinl 20151015 POP同步PCC反馈日志job start
+				<ref bean="getPccFeedbackEDRLogTrigger" />
+				add by jinl 20151015 POP同步PCC反馈日志job end
+				
+				CPE用户开户功能
+ 				<ref bean="cpeInstallAdapterTrigger"/>
+				 
+				CPE用户状态变更流程（农村-城市，城市-农村）
+				<ref bean="cpeUserStatusChangeTrigger"/>
+				
+				cpe用户销户户功能
+				<ref bean="scanFtpForDeleteTrigger" /> 
+				 
+		 		cpe销户异常文件定时任务
+				<ref bean="scanFtpForErrorDeleteTrigger" />
+				  
+				cpe用户宽带变更
+				<ref bean="scanFtpForBroadbandTrigger" />
+				
+				cpe用户开户测试
+			 	 <ref bean="scanFtpTrigger" />
+			 	
+			 	cpe变更imsi
+			 	<ref bean="cpeImsiChangeTrigger" />
+			 	cpe锁网测试
+		 		<ref bean="scanFtpForDeleteDownloadTrigger" />
+                cpe扫描基站割接
+                <ref bean="scanBatchStationChangeTrigger" /> -->
+			</list>
+		</property>
+	</bean>
+</beans>

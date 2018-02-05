@@ -1,0 +1,29 @@
+1.��Ȩ����չjar���뵽���̣�
+2.�ڹ��̵������ļ������IS_SUITE_PRIVILEGE�����ֵΪtrue��ʾʹ�ñ���Ȩ�ޣ�Ϊfalse��ʾʹ������Ȩ�ޣ�
+3.�ڹ��������listener�̳���SystemCommonListener������web.xml�н�IS_SUITE_PRIVILEGE���ص�ϵͳ�����У�������룺
+private void loadProperties(String fileName) {
+		try {
+			Properties props = new Properties();
+			File fileObj = new File(fileName);
+			String absPathStr = fileObj.getAbsolutePath();
+			log.debug("Load file:{}", absPathStr);
+			if (!fileObj.exists()) {
+				throw new Exception((new StringBuilder()).append("parameter file not found:").append(fileName)
+						.append("\r\nAbsolute Path:").append(absPathStr).toString());
+			} else {
+				FileInputStream fis = new FileInputStream(fileName);
+				props.load(fis);
+				fis.close();
+				System.getProperties().putAll(props);
+			}
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+	}
+4.�ⲿӦ��ͳһ��ȡ�����Ȩ�޽ӿ�ʵ��
+<!-- ͳһȨ�޽ӿڣ��Զ������ϱ���Ȩ�� -->
+	<bean id="userPrivilegeCommonService" class="com.ai.bdx.frame.privilegeServiceExt.service.impl.UserPrivilegeCommonServiceImpl">
+			<property name="userPrivilegeService">
+				<ref bean="userPrivilegeService"/>
+			</property>
+	</bean>    

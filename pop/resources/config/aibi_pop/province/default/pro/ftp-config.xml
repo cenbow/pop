@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ROOT>
+	<FTP type="huawei_sendodd"><!-- 配置该FTP对应厂商，多个用逗号分隔 ,type:sendodd-派单，feedback-营销日志反馈-->
+		<FTP_ADDRESS>10.131.38.55</FTP_ADDRESS><!-- 配置该FTP地址 -->
+		<FTP_PORT>21</FTP_PORT><!-- 配置该FTP端口 -->
+		<FTP_PATH>/stadata/bi_to_boss/data/files</FTP_PATH><!-- 配置该FTP服务器存放文件的根路径-->
+		<LOCAL_PATH>/stadata/bi_to_boss/data/files</LOCAL_PATH><!-- 本地文件路径,绝对路径-->
+		<FTP_USER>mddms</FTP_USER><!-- 配置该FTP用户名 -->
+		<FTP_PASSWORD>Mddms!55</FTP_PASSWORD><!-- 配置该FTP密码 -->
+		<FTP_PASSWORD_ENCRYPT>0</FTP_PASSWORD_ENCRYPT><!-- 配置该FTP密码是否DES加密：0-不加密，1-加密 -->
+		<FTP_ENCODE>UTF-8</FTP_ENCODE><!-- 文件传输编码 -->
+		<ISDELETE_LOCAL>0</ISDELETE_LOCAL><!-- 是否删除本地文件（0-不删，1-删） -->
+		<ISDELETE_REMOTE>0</ISDELETE_REMOTE><!-- 是否远程文件（0-不删，1-删） -->
+	</FTP>
+	<FTP type="zhongxing_sendodd"><!-- 配置该FTP对应的渠道ID，多个用逗号分隔 ,type:sendodd-派单，feedback-营销日志反馈-->
+		<FTP_ADDRESS>10.131.38.55</FTP_ADDRESS><!-- 配置该FTP地址 -->
+		<FTP_PORT>21</FTP_PORT><!-- 配置该FTP端口 -->
+		<FTP_PATH>/stadata/bi_to_boss/data/files</FTP_PATH><!-- 配置该FTP服务器存放文件的根路径-->
+		<LOCAL_PATH>/stadata/bi_to_boss/data/files</LOCAL_PATH><!-- 本地文件路径,绝对路径-->
+		<FTP_USER>mddms</FTP_USER><!-- 配置该FTP用户名 -->
+		<FTP_PASSWORD>Mddms!55</FTP_PASSWORD><!-- 配置该FTP密码 -->
+		<FTP_PASSWORD_ENCRYPT>0</FTP_PASSWORD_ENCRYPT><!-- 配置该FTP密码是否DES加密：0-不加密，1-加密 -->
+		<FTP_ENCODE>UTF-8</FTP_ENCODE><!-- 文件传输编码 -->
+		<ISDELETE_LOCAL>0</ISDELETE_LOCAL><!-- 是否删除本地文件（0-不删，1-删） -->
+		<ISDELETE_REMOTE>0</ISDELETE_REMOTE><!-- 是否远程文件（0-不删，1-删） -->
+	</FTP>
+	<FTP type="statusFeedBack"><!-- 配置状态反馈ftp-->
+		<FTP_ADDRESS>10.131.38.55</FTP_ADDRESS><!-- 配置该FTP地址 -->
+		<FTP_PORT>21</FTP_PORT><!-- 配置该FTP端口 -->
+		<FTP_PATH>/stadata/bi_to_boss/data/files</FTP_PATH><!-- 配置该FTP服务器存放文件的根路径-->
+		<LOCAL_PATH>/stadata/bi_to_boss/data/files</LOCAL_PATH><!-- 本地文件路径,绝对路径-->
+		<FTP_USER>mddms</FTP_USER><!-- 配置该FTP用户名 -->
+		<FTP_PASSWORD>Mddms!55</FTP_PASSWORD><!-- 配置该FTP密码 -->
+		<FTP_PASSWORD_ENCRYPT>0</FTP_PASSWORD_ENCRYPT><!-- 配置该FTP密码是否DES加密：0-不加密，1-加密 -->
+		<FTP_ENCODE>UTF-8</FTP_ENCODE><!-- 文件传输编码 -->
+		<ISDELETE_LOCAL>0</ISDELETE_LOCAL><!-- 是否删除本地文件（0-不删，1-删） -->
+		<ISDELETE_REMOTE>0</ISDELETE_REMOTE><!-- 是否远程文件（0-不删，1-删） -->
+	</FTP>
+		<FTP type="ailixin_sendodd"><!-- 配置该FTP对应厂商，多个用逗号分隔 ,type:sendodd-派单，feedback-营销日志反馈-->
+		<FTP_ADDRESS>10.131.38.55</FTP_ADDRESS><!-- 配置该FTP地址 -->
+		<FTP_PORT>21</FTP_PORT><!-- 配置该FTP端口 -->
+		<FTP_PATH>/stadata/bi_to_boss/data/files</FTP_PATH><!-- 配置该FTP服务器存放文件的根路径-->
+		<LOCAL_PATH>/stadata/bi_to_boss/data/files</LOCAL_PATH><!-- 本地文件路径,绝对路径-->
+		<FTP_USER>mddms</FTP_USER><!-- 配置该FTP用户名 -->
+		<FTP_PASSWORD>Mddms!55</FTP_PASSWORD><!-- 配置该FTP密码 -->
+		<FTP_PASSWORD_ENCRYPT>0</FTP_PASSWORD_ENCRYPT><!-- 配置该FTP密码是否DES加密：0-不加密，1-加密 -->
+		<FTP_ENCODE>UTF-8</FTP_ENCODE><!-- 文件传输编码 -->
+		<ISDELETE_LOCAL>0</ISDELETE_LOCAL><!-- 是否删除本地文件（0-不删，1-删） -->
+		<ISDELETE_REMOTE>0</ISDELETE_REMOTE><!-- 是否远程文件（0-不删，1-删） -->
+	</FTP>
+	<FTP type="huawei_erd_log"><!-- add by jinl20151102 配置该FTP对应的渠道ID，华为ERD 营销日志反馈-->
+		<FTP_ADDRESS>10.1.253.230</FTP_ADDRESS><!-- 配置该FTP地址 -->
+		<FTP_PORT>21</FTP_PORT><!-- 配置该FTP端口 -->
+		<FTP_PATH>/home/imcd/logs</FTP_PATH><!-- 配置该FTP服务器存放文件的根路径-->
+		<LOCAL_PATH>/home/imcd/logs</LOCAL_PATH><!-- 本地文件路径,绝对路径-->
+		<FTP_USER>imcd</FTP_USER><!-- 配置该FTP用户名 -->
+		<FTP_PASSWORD>imcd</FTP_PASSWORD><!-- 配置该FTP密码 -->
+		<FTP_PASSWORD_ENCRYPT>0</FTP_PASSWORD_ENCRYPT><!-- 配置该FTP密码是否DES加密：0-不加密，1-加密 -->
+		<FTP_ENCODE>UTF-8</FTP_ENCODE><!-- 文件传输编码 -->
+		<ISDELETE_LOCAL>0</ISDELETE_LOCAL><!-- 是否删除本地文件（0-不删，1-删） -->
+		<ISDELETE_REMOTE>0</ISDELETE_REMOTE><!-- 是否远程文件（0-不删，1-删） -->
+	</FTP>
+	
+</ROOT>

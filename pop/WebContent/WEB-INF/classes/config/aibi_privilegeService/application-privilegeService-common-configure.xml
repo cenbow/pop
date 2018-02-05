@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context" 
+    xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xsi:schemaLocation="
+	    http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+	    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+		http://cxf.apache.org/jaxws  http://cxf.apache.org/schemas/jaxws.xsd
+		http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<bean id="privilegeServiceTrasactionProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean" abstract="true">
+        <property name="transactionManager">
+            <ref bean="transactionManager"/>
+        </property>
+        <property name="transactionAttributes">
+            <props>
+            	<prop key="create*">PROPAGATION_REQUIRED</prop>
+            	<prop key="delete*">PROPAGATION_REQUIRED</prop>
+            	<prop key="create*">PROPAGATION_REQUIRED</prop>
+            	<prop key="export*">PROPAGATION_REQUIRED</prop>
+            	<prop key="export*">PROPAGATION_REQUIRED</prop>
+            	<!-- prop key="import*">PROPAGATION_REQUIRED</prop -->
+            	<prop key="lock*">PROPAGATION_REQUIRED</prop>
+            	<prop key="unlock*">PROPAGATION_REQUIRED</prop>
+            	<prop key="modify*">PROPAGATION_REQUIRED</prop>
+            	<prop key="realDelete*">PROPAGATION_REQUIRED</prop>
+            	<prop key="save*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+    </bean>
+    
+    <bean id="transactionInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+            	<prop key="save*">PROPAGATION_REQUIRED</prop>
+            	<prop key="clone*">PROPAGATION_REQUIRED</prop>
+            	<prop key="update*">PROPAGATION_REQUIRED</prop>
+            	<prop key="delete*">PROPAGATION_REQUIRED</prop>
+            	<prop key="do*">PROPAGATION_REQUIRED</prop>
+            	<prop key="add*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+            	<prop key="log*">PROPAGATION_REQUIRED</prop>
+              <prop key="*">PROPAGATION_REQUIRED,readOnly</prop>
+            </props>
+		</property>
+	</bean>
+
+	<import resource="privilegeService.${IS_SUITE_PRIVILEGE}.xml" />
+	
+	<!-- 统一权限接口，自动适配南北研权限 -->
+	<bean id="userPrivilegeCommonService" class="com.ai.bdx.frame.privilegeServiceExt.service.impl.UserPrivilegeCommonServiceImpl">
+			<property name="userPrivilegeService">
+				<ref bean="userPrivilegeService"/>
+			</property>
+	</bean>    
+</beans>

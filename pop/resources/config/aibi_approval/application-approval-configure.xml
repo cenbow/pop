@@ -1,0 +1,631 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:dwr="http://www.directwebremoting.org/schema/spring-dwr"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+	    http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+	    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+		http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context-2.5.xsd
+		">
+
+	<bean id="approvalPropertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="location">
+			<value>classpath:config/aibi_approval/approval.properties</value>
+		</property>
+	</bean>
+	<!-- 国际化信息支持 -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>config.aibi_approval.province.${PROVINCE}.approval-appresources</value>
+				<value>config.aibi_approval.approval-appresources</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="messageSourceInjector"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod">
+			<value>com.ai.bdx.frame.approval.util.MpmLocaleUtil.setConfMessages</value>
+		</property>
+		<property name="arguments">
+			<ref bean="messageSource" />
+		</property>
+	</bean>
+	<bean id="dataSourceAPP" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>${JDBC_APP}</value>
+		</property>
+	</bean>
+	<bean id="approvalSimpleJdbcTemplate" class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
+		<constructor-arg>
+			<ref bean="dataSourceAPP" />
+		</constructor-arg>
+	</bean>
+
+	<bean id="sessionFactoryApp"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSourceAPP" />
+		</property>
+		<property name="mappingLocations">
+			<list>
+				<value>classpath*:/com/ai/bdx/frame/approval/model/*.hbm.xml</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<!-- JDBC -->
+				<!--prop key="hibernate.connection.isolation">8</prop -->
+				<prop key="hibernate.dialect">${AP_HIBERNATE_DIALECT}</prop>
+				<prop key="hibernate.show_sql">${AP_HIBERNATE.SHOW_SQL}</prop>
+				<prop key="hibernate.format_sql">no</prop>
+				<prop key="hibernate.max_fetch_depth">3</prop>
+				<prop key="hibernate.default_batch_fetch_size">25</prop>
+				<prop key="hibernate.cglib.use_reflection_optimizer">true</prop>
+				<prop key="hibernate.connection.SetBigStringTryClob">true</prop>
+				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+				<prop key="hibernate.cache.use_query_cache">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- transactionManager -->
+	<bean id="transactionManagerApproval"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+
+	<!-- 配置事务特性，配置add，delete，update开始的方法，事务传播特性为required -->
+	<tx:advice id="txAppAdvice" transaction-manager="transactionManagerApproval">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="send*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="dispatch*" propagation="REQUIRED" />
+			<tx:method name="do*" propagation="REQUIRED" />
+			<tx:method name="export*" propagation="REQUIRED" />
+			<tx:method name="deal*" propagation="REQUIRED" />
+			<tx:method name="gen*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="upload*" propagation="REQUIRED" />
+			<tx:method name="move*" propagation="REQUIRED" />
+			<tx:method name="execute*" propagation="REQUIRED" />
+			<tx:method name="execTask*" propagation="REQUIRED" />
+			<tx:method name="create*" propagation="REQUIRED" />
+			<tx:method name="recreate*" propagation="REQUIRED" />
+			<tx:method name="preExecTask*" propagation="NOT_SUPPORTED" />
+			<tx:method name="*" propagation="REQUIRED" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置那些类的方法进行事务管理，当前com.ai.bdx.frame.approval.service包中的子包，类中所有方法需要，还需要参考tx:advice的设置 -->
+	<aop:config>
+		<aop:pointcut id="allAppManagerMethod"
+			expression="execution(* com.ai.bdx.frame.approval.service.*.*(..))" />
+		<aop:advisor advice-ref="txAppAdvice" pointcut-ref="allAppManagerMethod" />
+	</aop:config>
+
+	<!-- ========================= DAO Bean Definitions Begin =========================== -->
+
+	<bean id="campDatasourceDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MpmCampDataSourceDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlResListDao" class="com.ai.bdx.frame.approval.dao.impl.MtlResListDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="dimResTypeDao" class="com.ai.bdx.frame.approval.dao.impl.DimResTypeDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mpmCostListDao" class="com.ai.bdx.frame.approval.dao.impl.MpmCostListDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="campDatasrcColumnDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MpmCampDatasrcColumnDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlApproveAdviceDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveAdviceDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="dimCampDrvTypeDao"
+		class="com.ai.bdx.frame.approval.dao.impl.DimCampDrvTypeDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="dimMtlChanneltypeDao"
+		class="com.ai.bdx.frame.approval.dao.impl.DimMtlChanneltypeDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mpmForPageDao" class="com.ai.bdx.frame.approval.dao.impl.MpmForPageDaoImpl">
+		<property name="dataSource">
+			<ref bean="dataSourceAPP" />
+		</property>
+	</bean>
+	<bean id="dimCampsegStatDao"
+		class="com.ai.bdx.frame.approval.dao.impl.DimCampsegStatDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlCampsegProgressDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlCampsegProgressDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlApproveConfirmListDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveConfirmListDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mpmApproveRelationDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MpmApproveRelationDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlApproveFlowDefDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveFlowDefDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlApproveAuthDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveAuthDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlSysActStepDefDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlSysActStepDefDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mpmSysActFlowDefDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MpmSysActflowDefDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mpmSysFlowstepDefDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MpmSysFlowstepDefDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mpmCommonJdbcDao" class="com.ai.bdx.frame.approval.dao.impl.MpmCommonJdbcDaoImpl">
+		<property name="dataSource">
+			<ref bean="dataSourceAPP" />
+		</property>
+	</bean>
+	<bean id="mtlApproveLevelDefDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveLevelDefDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlApproveTriggerCondDefDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveTriggerCondDefDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="dimPubChannel" class="com.ai.bdx.frame.approval.dao.impl.DimPubChannelDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlApproveTriggerCondIndiDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveTriggerCondIndiDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="mtlCampsegApproverListDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlCampsegApproverListDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+
+	<bean id="dimPubChanneltype"
+		class="com.ai.bdx.frame.approval.dao.impl.DimPubChannelTypeDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="dimMtlChannelDao" class="com.ai.bdx.frame.approval.dao.impl.DimMtlChannelDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+
+	<bean id="campDatasourceService"
+		class="com.ai.bdx.frame.approval.service.impl.MpmCampDataSourceSvcImpl">
+		<property name="campDatasourceDao">
+			<ref bean="campDatasourceDao" />
+		</property>
+		<property name="campDatasrcColumnDao">
+			<ref bean="campDatasrcColumnDao" />
+		</property>
+		<property name="mpmForPageDao">
+			<ref bean="mpmForPageDao" />
+		</property>
+	</bean>
+	<bean id="dimDeptFlowRelationDao"
+		class="com.ai.bdx.frame.approval.dao.impl.DimDeptFlowRelationDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+
+	<bean id="mtlApproveResourceTypeDao"
+		class="com.ai.bdx.frame.approval.dao.impl.MtlApproveResourceTypeDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="dimChannelUserRelationDao"
+		class="com.ai.bdx.frame.approval.dao.impl.DimChannelUserRelationDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+
+	<bean id="mpmApproveRelationService"
+		class="com.ai.bdx.frame.approval.service.impl.MpmApproveRelationSvcImpl">
+		<!-- <property name="dimPositionCodeDao"> <ref bean="dimPositionCodeDao" 
+			/> </property> -->
+		<property name="mpmUserPrivilegeService">
+			<ref bean="userPrivilegeCommonService" />
+		</property>
+		<property name="mpmApproveRelationDao">
+			<ref bean="mpmApproveRelationDao" />
+		</property>
+		<property name="mpmForPageDao">
+			<ref bean="mpmForPageDao" />
+		</property>
+		<property name="mpmCommonJdbcDao">
+			<ref bean="mpmCommonJdbcDao" />
+		</property>
+	</bean>
+
+	<bean id="mpmApproveFlowDefService"
+		class="com.ai.bdx.frame.approval.service.impl.MtlApproveFlowDefServiceImpl">
+		<property name="mtlApproveFlowDefDao">
+			<ref bean="mtlApproveFlowDefDao" />
+		</property>
+		<property name="mtlApproveLevelDefDao">
+			<ref bean="mtlApproveLevelDefDao" />
+		</property>
+		<property name="mtlApproveTriggerCondDefDao">
+			<ref bean="mtlApproveTriggerCondDefDao" />
+		</property>
+		<property name="mtlApproveTriggerCondIndiDao">
+			<ref bean="mtlApproveTriggerCondIndiDao" />
+		</property>
+		<property name="mtlCampsegApproverListDao">
+			<ref bean="mtlCampsegApproverListDao" />
+		</property>
+		<property name="mpmUserPrivilegeService">
+			<ref bean="userPrivilegeCommonService" />
+		</property>
+	</bean>
+	<bean id="commonService"
+		class="com.ai.bdx.frame.approval.service.impl.MpmCommonServiceImpl">
+
+		<property name="commonJdbcDao">
+			<ref bean="mpmCommonJdbcDao" />
+		</property>
+		<property name="campDevTypeDao">
+			<ref bean="dimCampDrvTypeDao" />
+		</property>
+		<property name="channelTypeDao">
+			<ref bean="dimPubChanneltype" />
+		</property>
+		<property name="channelDao">
+			<ref bean="dimPubChannel" />
+		</property>
+		<property name="sysActStepDefDao">
+			<ref bean="mtlSysActStepDefDao" />
+		</property>
+		<property name="mpmApproveRelationDao">
+			<ref bean="mpmApproveRelationDao" />
+		</property>
+		<property name="actFlowDefDao">
+			<ref bean="mpmSysActFlowDefDao" />
+		</property>
+		<property name="flowstepDefDao">
+			<ref bean="mpmSysFlowstepDefDao" />
+		</property>
+		<property name="campsegProgressDao">
+			<ref bean="mtlCampsegProgressDao" />
+		</property>
+		<property name="mpmCampDatasrcColumnDao">
+			<ref bean="campDatasrcColumnDao" />
+		</property>
+		<property name="campDatasourceDao">
+			<ref bean="campDatasourceDao" />
+		</property>
+		<property name="campDatasrcColumnDao">
+			<ref bean="campDatasrcColumnDao" />
+		</property>
+		<property name="mtlCampsegApproverListDao">
+			<ref bean="mtlCampsegApproverListDao" />
+		</property>
+		<property name="mtlApproveAdviceDao">
+			<ref bean="mtlApproveAdviceDao" />
+		</property>
+		<property name="approveConfirmListDao">
+			<ref bean="mtlApproveConfirmListDao" />
+		</property>
+
+		<property name="dimMtlChanneltypeDao">
+			<ref bean="dimMtlChanneltypeDao" />
+		</property>
+		<property name="dimMtlChannelDao">
+			<ref bean="dimMtlChannelDao" />
+		</property>
+
+		<property name="mtlApproveFlowDefDao">
+			<ref bean="mtlApproveFlowDefDao" />
+		</property>
+		<property name="progressDao">
+			<ref bean="mtlCampsegProgressDao" />
+		</property>
+	</bean>
+	<bean id="mtlConfirmService"
+		class="com.ai.bdx.frame.approval.service.impl.MtlConfirmServiceImpl">
+		<property name="approveResourceDao">
+			<ref bean="mtlApproveResourceTypeDao" />
+		</property>
+	</bean>
+	<bean id="dimChannelUserRelationService"
+		class="com.ai.bdx.frame.approval.service.impl.DimChannelUserRelationServiceImpl">
+		<property name="dimChannelUserRelationDao">
+			<ref bean="dimChannelUserRelationDao" />
+		</property>
+	</bean>
+	<bean id="dimMtlChannelService"
+		class="com.ai.bdx.frame.approval.service.impl.DimMtlChannelServiceImpl">
+		<property name="dimMtlChannelDao">
+			<ref bean="dimMtlChannelDao" />
+		</property>
+	</bean>
+	<bean id="dimMtlChanneltypeService"
+		class="com.ai.bdx.frame.approval.service.impl.DimMtlChanneltypeServiceImpl">
+		<property name="dimMtlChanneltypeDao">
+			<ref bean="dimMtlChanneltypeDao" />
+		</property>
+	</bean>
+	<bean id="mtlApproveResourceTypeService"
+		class="com.ai.bdx.frame.approval.service.impl.MtlApproveResourceTypeServiceImpl">
+		<property name="mtlApproveResourceTypeDao">
+			<ref bean="mtlApproveResourceTypeDao" />
+		</property>
+	</bean>
+	<bean id="dimDeptFlowRelationService"
+		class="com.ai.bdx.frame.approval.service.impl.DimDeptFlowRelationServiceImpl">
+		<property name="dimDeptFlowRelationDao">
+			<ref bean="dimDeptFlowRelationDao" />
+		</property>
+	</bean>
+
+
+	<bean id="mpmSysActFlowDefService"
+		class="com.ai.bdx.frame.approval.service.impl.MpmSysActflowDefSvcImpl">
+		<property name="sysActFlowDefDao">
+			<ref bean="mpmSysActFlowDefDao" />
+		</property>
+		<property name="sysFlowstepDefDao">
+			<ref bean="mpmSysFlowstepDefDao" />
+		</property>
+		<property name="sysActStepDefDao">
+			<ref bean="mtlSysActStepDefDao" />
+		</property>
+		<property name="mpmForPageDao">
+			<ref bean="mpmForPageDao" />
+		</property>
+	</bean>
+
+	<bean id="mpmResListService"
+		class="com.ai.bdx.frame.approval.service.impl.MpmResListSvcImpl">
+		<property name="mtlResListDao">
+			<ref bean="mtlResListDao" />
+		</property>
+		<property name="dimResTypeDao">
+			<ref bean="dimResTypeDao" />
+		</property>
+		<property name="mpmCostListDao">
+			<ref bean="mpmCostListDao" />
+		</property>
+		<property name="mpmForPageDao">
+			<ref bean="mpmForPageDao" />
+		</property>
+	</bean>
+
+	<bean id="dimPlanExecType" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimPlanExecIdNameMapper">
+				<property name="dao">
+					<ref bean="dimCampDrvTypeDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimActflow" parent="baseProxy">
+		<property name="target">
+			<bean class="com.ai.bdx.frame.approval.service.impl.DimActFlowIdNameMapper">
+				<property name="dao">
+					<ref bean="mpmSysActFlowDefDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimCampsegStat" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimCampsegStatIdNameMapper">
+				<property name="dao">
+					<ref bean="dimCampsegStatDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="dimCampDrvType" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimCampDrvTypeIdNameMapper">
+				<property name="dao">
+					<ref bean="dimCampDrvTypeDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="dimResourceType" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimResourceTypeIdNameMapper">
+				<property name="dao">
+					<ref bean="mtlApproveResourceTypeDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimPubCity" parent="baseProxy">
+		<property name="target">
+			<bean class="com.ai.bdx.frame.approval.service.impl.DimPubCityIdNameMapper">
+				<property name="mpmUserPrivilegeService">
+					<ref bean="userPrivilegeCommonService" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimPubChannelType" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimPubChannelTypeIdNameMapper">
+				<property name="dao">
+					<ref bean="dimPubChanneltype" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimMtlChanneltype" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimCampChannelTypeIdNameMapper">
+				<property name="dao">
+					<ref bean="dimMtlChanneltypeDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimDeptId" parent="baseProxy">
+		<property name="target">
+			<bean class="com.ai.bdx.frame.approval.service.impl.DimDeptIdNameMapper">
+				<property name="mpmUserPrivilegeService">
+					<ref bean="userPrivilegeCommonService" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="allChannel" parent="baseProxy">
+		<property name="target">
+			<bean class="com.ai.bdx.frame.approval.service.impl.DimChannelIdNameMapper">
+				<property name="channelDao">
+					<ref bean="dimPubChannel" />
+				</property>
+
+				<property name="dimMtlChannelDao">
+					<ref bean="dimMtlChannelDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="dimChannel" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.DimPubChannelIdNameMapper">
+				<property name="dao">
+					<ref bean="dimPubChannel" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="approveFlow" parent="baseProxy">
+		<property name="target">
+			<bean
+				class="com.ai.bdx.frame.approval.service.impl.MtlApproveFlowIdNameMapper">
+				<property name="dao">
+					<ref bean="mtlApproveFlowDefDao" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="dimUserId" parent="baseProxy">
+		<property name="target">
+			<bean class="com.ai.bdx.frame.approval.service.impl.DimUserIdNameMapper">
+				<property name="mpmUserPrivilegeService">
+					<ref bean="userPrivilegeCommonService" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="mpmCampChannelDispatchSearchService"
+		class="com.ai.bdx.frame.approval.service.impl.MpmCampChannelDispatchSearchServiceImpl">
+		<property name="dimMtlChannelDao">
+			<ref bean="dimMtlChannelDao" />
+		</property>
+		<property name="dimMtlChannelService">
+			<ref bean="dimMtlChannelService" />
+		</property>
+	</bean>
+	<!-- 审批服务bean向外提供服务 -->
+	<bean id="approvalDao" class="com.ai.bdx.frame.approval.dao.impl.ApprovalDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactoryApp" />
+		</property>
+	</bean>
+	<bean id="approvalService"
+		class="com.ai.bdx.frame.approval.service.impl.ApprovalServiceImpl">
+		<property name="userPrivilegeService">
+			<ref bean="userPrivilegeCommonService" />
+		</property>
+		<property name="approvalDao">
+			<ref bean="approvalDao" />
+		</property>
+	</bean>
+</beans>

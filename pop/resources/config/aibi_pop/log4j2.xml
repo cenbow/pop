@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="debug" monitorInterval="30">  
+  <Properties>
+    <Property name="filename">logs/pop.log</Property>
+  </Properties>
+  <appenders>  
+    <Console name="STDOUT"  target="SYSTEM_OUT">  
+      <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %logger{36} - %msg%n"/>  
+    </Console > 
+    <RollingRandomAccessFile    name="FILELOG"   fileName="${filename}"  
+    	filePattern="logs/$${date:yyyy-MM}/pop-%d{yyyy-MM-dd}-%i.log.zip"   immediateFlush="false">  
+      <PatternLayout pattern="[%-5p] %d %37c %3x - %m%n"/>  
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+        <SizeBasedTriggeringPolicy size="1024MB"/>
+      </Policies>
+    </RollingRandomAccessFile >
+  </appenders>  
+  <loggers>  
+    <root level="debug">  
+      <appender-ref ref="STDOUT"/><appender-ref ref="FILELOG"/>  
+    </root> 
+    <logger name="com.ai.bdx.pop" level="debug" additivity="false">  
+      <appender-ref ref="STDOUT"/><appender-ref ref="FILELOG"/>  
+    </logger> 
+  </loggers>  
+</configuration>  

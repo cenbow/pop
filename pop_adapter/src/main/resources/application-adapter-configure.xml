@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/rabbit 
+		http://www.springframework.org/schema/rabbit/spring-rabbit-1.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+	    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<!-- 配置数据源  开始########################################################################################## -->	
+    <!-- 连接池配置方式  -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close" >
+        <property name="driverClassName" value="${DATABASE_DRIVERCLASSNAME}" />
+        <property name="url" value="${DATABASE_URL}"/>
+        <property name="username" value="${DATABASE_USERNAME}"/>
+        <property name="password" value="${DATABASE_PWD}"/>
+        <property name="maxActive" value="100"/>
+        <property name="initialSize" value="50"/>
+        <property name="maxIdle" value="30"/>
+        <property name="maxWait" value="1000" />
+        <property name="poolPreparedStatements" value="true" />
+		<property name="defaultAutoCommit" value="true" /> 
+    </bean>
+    
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+       <constructor-arg name="dataSource" ref="dataSource" />
+    </bean>
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 拦截器方式配置事物 -->
+	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="create*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="modify*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="edit*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="remove*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="get*" propagation="SUPPORTS" rollback-for="java.lang.Exception"/>
+			<tx:method name="find*" propagation="SUPPORTS" rollback-for="java.lang.Exception"/>
+			<tx:method name="load*" propagation="SUPPORTS" rollback-for="java.lang.Exception"/>
+			<tx:method name="search*" propagation="SUPPORTS" rollback-for="java.lang.Exception"/>
+			<tx:method name="*" propagation="SUPPORTS" rollback-for="java.lang.Exception"/>
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="transactionPointcut"
+			expression="execution(* com.ailk.bdx.pop.adapter.service.impl.*.*(..))" />
+		<aop:advisor pointcut-ref="transactionPointcut"
+			advice-ref="transactionAdvice" />
+	</aop:config>
+	<!-- 配置数据源  结束######################################################################################### -->	
+	
+	<!-- adapter  开始######################################################################################### -->
+	<!-- <import resource="adapter-job-configure.xml" />   -->
+	
+	<!-- 使用spring提供的PropertyPlaceholderConfigurer读取数据库配置信息.properties -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:/adapter.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- by huangpa -->
+	<!-- <bean id="clusterStatusListener" class="com.ailk.bdx.pop.adapter.kafka.receiver.impl.ClusterStatusListener">
+		<property name="dispatchStrategy" ref="dispatchStrategy" />
+	</bean> -->
+	
+	<!-- 分发模块配置  -->
+	<!-- <bean id="dispatchStrategy" class="com.ailk.bdx.pop.adapter.dispatch.impl.HashDispatchStrategy" scope="singleton"/> -->
+	<bean id="dispatchStrategy" class="com.ailk.bdx.pop.adapter.dispatch.impl.ConsistentHashDispatchStrategy" scope="singleton" />
+	
+	<!-- NioTcpClient连接-->
+	<bean id="nioTcpClient" class="com.ailk.bdx.pop.adapter.schedule.impl.${PROVINCE}.NioTcpClientImpl" />
+	
+	<!-- 手机号IMSI缓存  -->
+	<!-- <bean id="phoneConvertCache" class="com.ailk.bdx.pop.adapter.cache.impl.${PROVINCE}.PhoneConvertCache"  scope="singleton" /> -->
+	
+	<!-- 过滤模块配置 -->
+	<!-- <bean id="dataFilter" class="com.ailk.bdx.pop.adapter.filter.impl.${PROVINCE}.DefaultDataFilter" >
+	  	<property name="phoneConvertCache" ref="phoneConvertCache" />
+	</bean> -->
+	<bean id="dataFilter" class="com.ailk.bdx.pop.adapter.filter.impl.${PROVINCE}.DPIDataFilter" >
+	</bean>
+	
+	<!-- 数据处理模块配置  -->
+	<bean id="dataHandle" class="com.ailk.bdx.pop.adapter.handle.impl.DefaultDataHandle">
+		<property name="dataFilter" ref="dataFilter" />
+		<property name="dispatchStrategy" ref="dispatchStrategy" />
+	</bean>
+	
+	<!-- 缓冲模块配置 -->
+	<!-- <bean id="dataBuffer" class="com.ailk.bdx.pop.adapter.buffer.impl.block.BlockingQueueDataBuffer" scope="singleton">
+		<property name="handler" ref="pollHandler" />
+	</bean>
+	<bean id="pollHandler" class="com.ailk.bdx.pop.adapter.buffer.impl.block.PollHandler">
+		<property name="dataHandle" ref="dataHandle" />
+	</bean> -->
+	 <bean id="dataBuffer" class="com.ailk.bdx.pop.adapter.buffer.impl.noblock.DisruptorBuffer" scope="singleton"  lazy-init="true">
+		<constructor-arg name="ringBufferSize" value="${DISRUPTOR_RBUFFER_SIZE}"></constructor-arg>
+		<constructor-arg name="strWaitStrategy" value="${DISRUPTOR_WAIT_STRATEGY}"></constructor-arg>
+		<constructor-arg name="customerSize" value="${DISRUPTOR_CUSTOMOR_SIZE}"></constructor-arg>
+	</bean>
+	<bean id="eventHandler" class="com.ailk.bdx.pop.adapter.buffer.impl.noblock.ValueEventHandler">
+		<property name="dataHandle" ref="dataHandle" />
+	</bean>
+	
+	<!-- 文件处理配置 -->
+	<bean id="lineFileReader" class="com.ailk.bdx.pop.adapter.schedule.LineFileReader" scope="prototype">
+		<property name="dataBuffer" ref="dataBuffer" />
+		<property name="dataHandle" ref="dataHandle" />
+	</bean>
+	<!-- Socket处理配置 -->
+	<bean id="lineSocketReader" class="com.ailk.bdx.pop.adapter.schedule.LineSocketReader" scope="prototype">
+		<property name="dataBuffer" ref="dataBuffer" />
+		<property name="dataHandle" ref="dataHandle" />
+	</bean>
+	<bean id="mcdSocketClientHandler" class="com.ailk.bdx.pop.adapter.schedule.impl.${PROVINCE}.McdSocketClientHandlerImpl" scope="prototype">
+		<property name="dataBuffer" ref="dataBuffer" />
+		<property name="dataHandle" ref="dataHandle" />
+	</bean>
+	<bean id="LineHdfsReader" class="com.ailk.bdx.pop.adapter.schedule.LineHdfsReader" scope="prototype">
+		<property name="dataBuffer" ref="dataBuffer" />
+		<property name="dataHandle" ref="dataHandle" />
+	</bean>
+	<!-- by huangpa -->
+	<!-- <bean id="transferClientHandler" class="com.ailk.bdx.pop.adapter.socket2cep.TransferClientHandler" scope="prototype">
+	</bean> -->
+	<!-- adapter  结束######################################################################################### -->
+	
+	<!-- 用户CPE信息Dao对象 -->
+	<bean id="cpeUserInfoDao" class="com.ailk.bdx.pop.adapter.dao.impl.CpeUserInfoDaoImpl">
+	</bean>
+	
+	<!-- 用户锁网小区关系Dao对象 -->
+	<bean id="cpeUserLockRelDao" class="com.ailk.bdx.pop.adapter.dao.impl.CpeUserLockRelDaoImpl">
+	</bean>
+	
+	<!-- 农村基站Dao对象 -->
+	<bean id="dimCpeStationDao" class="com.ailk.bdx.pop.adapter.dao.impl.DimCpeStationDaoImpl">
+	</bean>
+	
+	<!-- 小区Dao对象 -->
+	<bean id="dimCpeLacCiDao" class="com.ailk.bdx.pop.adapter.dao.impl.DimCpeLacCiDaoImpl">
+	</bean>
+	
+	<!-- 用户CPEServer对象 -->
+	<bean id="cpeUserInfoService" class="com.ailk.bdx.pop.adapter.service.impl.CpeUserInfoServiceImpl">
+	</bean>
+	
+	<bean id="transferClientHandler" class="com.ailk.bdx.pop.adapter.socket.socket2pop.TransferClientHandler" scope="prototype">
+	</bean>
+	
+</beans>

@@ -1,0 +1,80 @@
+<sourceConfig>
+  <items>
+    <file> <!-- 本地文件方式 -->
+      <scanPeriod> <!-- 扫描周期 -->
+        <period>10</period> <!-- 间隔 -->
+        <timeUnit>SECONDS</timeUnit> <!-- 时间单元，可选值SECONDS,MINUTES,HOURS,DAYS -->
+      </scanPeriod>
+      <fileDirectory>D:\workspace\TestMap\</fileDirectory> <!-- 文件所在目录 -->
+      <filePrefix>A94009CS</filePrefix> <!-- 文件名前缀 -->
+      <fileTimeformat>yyyyMMdd_HHmm</fileTimeformat> <!-- 文件名时间串 -->
+      <fileSuffix>AVL</fileSuffix> <!-- 文件名后缀 -->
+      <charsetName>utf-8</charsetName> <!-- 编码 -->
+      <bufferSize>5242880</bufferSize> <!-- 缓冲大小 -->
+      <deleteLocal>false</deleteLocal> <!-- 执行完成是否删除 -->
+      <name>A</name> <!-- 事件源名称 -->
+      <eventId>1</eventId> <!-- 事件源ID，派发到MQ上数据的首字段，与数据库配置一致 -->
+      <content> <!-- 文本内容 -->
+      	<split>,</split> <!-- 文本分割符 -->
+        <sourceFileField>eventid,etime,lac,ci,callingimei,calledimei,callingimsi,calledimsi</sourceFileField><!-- 源字段描述 -->
+        <eventid>1,3,8,9</eventid> <!-- 可处理的时间类型范围 -->
+        <eventidIndex>0</eventidIndex> <!-- 事件字段索引 -->
+        <convertIndex>6,7</convertIndex> <!-- 待转换的字段索引 -->
+        <keyMap>3-7|1-6|8-6|9-6</keyMap> <!-- key字段取值逻辑Map -->
+        <targetField>eventid,etime,lac_ci,phone_no,called_phone_no</targetField> <!-- 目标字段描述 -->
+        <targetIndex>0,1,2_3,6,7</targetIndex> <!-- 目标字段在源字段中的索引,带下划线的为联合字段 -->
+      </content>
+    </file>
+    <ftp> <!-- 远程文件方式 -->
+      <scanPeriod>
+        <period>5</period>
+        <timeUnit>SECONDS</timeUnit>
+      </scanPeriod>
+      <ftpAddress>127.0.0.1</ftpAddress> <!-- FTP地址 -->
+      <ftpPort>21</ftpPort> <!-- 端口 -->
+      <ftpUser>imcd</ftpUser> <!-- 用户名 -->
+      <ftpPassword>imcd</ftpPassword> <!-- 密码 -->
+      <ftpPasswordEncrypt>0</ftpPasswordEncrypt> <!-- 密码是否机密，0:非机密；1：机密,默认DES加密方式，代码中暂不支持加密方式 -->
+      <ftpPath>/xinling/</ftpPath> <!-- FTP目标文件目录 -->
+      <filePrefix>A94009CS</filePrefix> <!-- 文件名前缀 -->
+      <fileTimeformat>yyyyMMdd_HHmm</fileTimeformat> <!-- 文件名时间串 -->
+      <fileSuffix>AVL</fileSuffix> <!-- 文件名后缀 -->
+      <charsetName>UTF-8</charsetName> <!-- 编码格式 -->
+      <deleteRemote>false</deleteRemote> <!-- 下载FTP文件后是否删除 ，默认true -->
+      <localPath>D:/temp/mpm/ftpdown/</localPath> <!-- 下载到本地的文件目录 -->
+      <deleteLocal>true</deleteLocal> <!-- 本地本件处理完成后是否删除，默认true -->
+      <name>Gn</name> <!-- 事件源名称 -->
+      <eventId>2</eventId> <!-- 事件源ID，派发到MQ上数据的首字段，与数据库配置一致 -->
+      <content> <!-- 文本内容 -->
+      	<split>,</split> <!-- 文本分割符 -->
+        <sourceFileField>eventid,etime,lac,ci,callingimei,calledimei,callingimsi,calledimsi</sourceFileField><!-- 源字段描述 -->
+        <eventid>1,3,8,9</eventid> <!-- 可处理的时间类型范围 -->
+        <eventidIndex>0</eventidIndex> <!-- 事件字段索引 -->
+        <convertIndex>6,7</convertIndex> <!-- 待转换的字段索引 -->
+        <keyMap>3-7|1-6|8-6|9-6</keyMap> <!-- key字段取值逻辑Map -->
+        <targetField>eventid,etime,lac_ci,phone_no,called_phone_no</targetField> <!-- 目标字段描述 -->
+        <targetIndex>0,1,2_3,6,7</targetIndex> <!-- 目标字段在源字段中的索引,带下划线的为联合字段 -->
+      </content>
+    </ftp>
+    <socket> <!-- sokcket方式 -->
+      <socketIp>127.0.0.1</socketIp> <!-- SOCKET地址 -->
+      <socketPort>3456</socketPort> <!-- 端口 -->
+      <timeOutMills>30000</timeOutMills> <!-- 连接超时，单位毫秒 -->
+      <socketCharset>UTF-8</socketCharset> <!-- 字编码格式 -->
+      <socketUserName>admin</socketUserName><!-- 连接sca用户名 -->
+      <socketPassword>admin</socketPassword><!-- 连接sca密码 -->
+      <name>SCA</name> <!-- 事件源名称 -->
+      <eventId>3</eventId> <!-- 事件源ID，派发到MQ上数据的首字段，与数据库配置一致 -->
+      <content> <!-- 文本内容 -->
+      	<split>,</split> <!-- 文本分割符 -->
+        <sourceFileField>eventid,etime,lac,ci,callingimei,calledimei,callingimsi,calledimsi</sourceFileField><!-- 源字段描述 -->
+        <eventid>1,3,8,9</eventid> <!-- 可处理的时间类型范围 -->
+        <eventidIndex>0</eventidIndex> <!-- 事件字段索引 -->
+        <convertIndex>6,7</convertIndex> <!-- 待转换的字段索引 -->
+        <keyMap>3-7|1-6|8-6|9-6</keyMap> <!-- key字段取值逻辑Map -->
+        <targetField>eventid,etime,lac_ci,phone_no,called_phone_no</targetField> <!-- 目标字段描述 -->
+        <targetIndex>0,1,2_3,6,7</targetIndex> <!-- 目标字段在源字段中的索引,带下划线的为联合字段 -->
+      </content>
+    </socket>
+  </items>
+</sourceConfig>
